@@ -3,8 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
+
+	"golang.org/x/net/html"
 )
 
 func main() {
@@ -23,15 +26,34 @@ func retrieve(url string) {
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("error retrieving page: ", err)
-		return
+		os.Exit(1)
 	}
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("network error: ", err)
-		return
+	links := getAllLinks(resp.Body)
+
+	for _, link := range links {
+		fmt.Println(link)
 	}
-	fmt.Println(string(body))
+}
+
+func getAllLinks(respbody io.Reader) []string {
+	var links []string
+	z := html.NewTokenizer(respbody)
+	for {
+		tt := z.Next()
+		if tt == html.ErrorToken {
+			return links
+		}
+		token := z.Token()
+
+		if token.Type == html.StartTagToken && token.DataAtom.String() == "a" {
+			for _, attr := range token.Attr {
+				if attr.Key == "href" {
+					links = append(links, attr.Val)
+				}
+			}
+		}
+	}
 }
