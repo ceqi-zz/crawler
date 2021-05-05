@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
-
-	"golang.org/x/net/html"
+	"regexp"
 )
 
 func main() {
@@ -18,10 +16,12 @@ func main() {
 		panic("Please specify start page")
 	}
 
-	retrieve(args[0])
+	validRoot := regexp.MustCompile(`(https://[\w.]+)/.+`)
+	root := validRoot.FindStringSubmatch(args[0])[0]
+	retrieve(args[0], root)
 }
 
-func retrieve(url string) {
+func retrieve(url, root string) {
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -31,29 +31,9 @@ func retrieve(url string) {
 
 	defer resp.Body.Close()
 
-	links := getAllLinks(resp.Body)
+	links := getAllLinks(resp.Body, root)
 
 	for _, link := range links {
 		fmt.Println(link)
-	}
-}
-
-func getAllLinks(respbody io.Reader) []string {
-	var links []string
-	z := html.NewTokenizer(respbody)
-	for {
-		tt := z.Next()
-		if tt == html.ErrorToken {
-			return links
-		}
-		token := z.Token()
-
-		if token.Type == html.StartTagToken && token.DataAtom.String() == "a" {
-			for _, attr := range token.Attr {
-				if attr.Key == "href" {
-					links = append(links, attr.Val)
-				}
-			}
-		}
 	}
 }
