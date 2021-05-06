@@ -27,7 +27,6 @@ func getAllLinks(respbody io.Reader, root string) []string {
 					var link string
 					if strings.HasPrefix(attr.Val, "/") {
 						link = root + attr.Val
-						break
 					} else {
 						link = attr.Val
 					}
