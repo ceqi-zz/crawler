@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"os"
 	"regexp"
 )
+
+var visited = make(map[string]bool)
 
 func main() {
 	flag.Parse()
@@ -21,9 +22,7 @@ func main() {
 
 	q := make(chan string)
 
-	go func() {
-		q <- args[0]
-	}()
+	enqueue(q, args[0])
 
 	for url := range q {
 		retrieve(url, root, q)
@@ -33,10 +32,12 @@ func main() {
 
 func retrieve(url, root string, q chan string) {
 	fmt.Println("retrieve url: " + url)
+
+	visited[url] = true
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("error retrieving page: ", err)
-		os.Exit(1)
+		return
 	}
 
 	defer resp.Body.Close()
@@ -44,8 +45,15 @@ func retrieve(url, root string, q chan string) {
 	links := getAllLinks(resp.Body, root)
 
 	for _, link := range links {
-		go func() {
-			q <- link
-		}()
+		if !visited[link] {
+			enqueue(q, link)
+		}
+
 	}
+}
+
+func enqueue(c chan string, url string) {
+	go func() {
+		c <- url
+	}()
 }
