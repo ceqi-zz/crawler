@@ -16,13 +16,23 @@ func main() {
 		panic("Please specify start page")
 	}
 
-	validRoot := regexp.MustCompile(`(https://[\w.]+)/.+`)
+	validRoot := regexp.MustCompile(`(https://[\w.]+).*`)
 	root := validRoot.FindStringSubmatch(args[0])[0]
-	retrieve(args[0], root)
+
+	q := make(chan string)
+
+	go func() {
+		q <- args[0]
+	}()
+
+	for url := range q {
+		retrieve(url, root, q)
+	}
+
 }
 
-func retrieve(url, root string) {
-
+func retrieve(url, root string, q chan string) {
+	fmt.Println("retrieve url: " + url)
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("error retrieving page: ", err)
@@ -34,6 +44,8 @@ func retrieve(url, root string) {
 	links := getAllLinks(resp.Body, root)
 
 	for _, link := range links {
-		fmt.Println(link)
+		go func() {
+			q <- link
+		}()
 	}
 }

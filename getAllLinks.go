@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/html"
 )
 
+// get all links from current page
 func getAllLinks(respbody io.Reader, root string) []string {
 	var links []string
 	z := html.NewTokenizer(respbody)
