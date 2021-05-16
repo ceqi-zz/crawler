@@ -4,8 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"regexp"
 )
+
+//TODO: resolve relative links
 
 var visited = make(map[string]bool)
 
@@ -17,20 +18,17 @@ func main() {
 		panic("Please specify start page")
 	}
 
-	validRoot := regexp.MustCompile(`(https://[\w.]+).*`)
-	root := validRoot.FindStringSubmatch(args[0])[0]
-
 	q := make(chan string)
 
 	enqueue(q, args[0])
 
 	for url := range q {
-		retrieve(url, root, q)
+		retrieve(url, q)
 	}
 
 }
 
-func retrieve(url, root string, q chan string) {
+func retrieve(url string, q chan string) {
 	fmt.Println("retrieve url: " + url)
 
 	visited[url] = true
@@ -42,7 +40,7 @@ func retrieve(url, root string, q chan string) {
 
 	defer resp.Body.Close()
 
-	links := getAllLinks(resp.Body, root)
+	links := getAllLinks(resp.Body)
 
 	for _, link := range links {
 		if !visited[link] {

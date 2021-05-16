@@ -8,7 +8,7 @@ import (
 )
 
 // get all links from current page
-func getAllLinks(respbody io.Reader, root string) []string {
+func getAllLinks(respbody io.Reader) []string {
 	var links []string
 	z := html.NewTokenizer(respbody)
 	for {
@@ -21,15 +21,9 @@ func getAllLinks(respbody io.Reader, root string) []string {
 		if token.Type == html.StartTagToken && token.DataAtom.String() == "a" {
 			for _, attr := range token.Attr {
 				if attr.Key == "href" {
-					if strings.Contains(attr.Val, "#") {
+					link := attr.Val
+					if strings.Contains(link, "#") {
 						break
-					}
-
-					var link string
-					if strings.HasPrefix(attr.Val, "/") {
-						link = root + attr.Val
-					} else {
-						link = attr.Val
 					}
 
 					if isUnique(links, link) {
