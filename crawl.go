@@ -4,9 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/url"
 )
-
-//TODO: resolve relative links
 
 func main() {
 	flag.Parse()
@@ -39,10 +38,10 @@ func filterq(q, filteredq chan string) {
 	}
 }
 
-func enqueue(url string, q chan string) {
-	fmt.Println("retrieve url: " + url)
+func enqueue(rawurl string, q chan string) {
+	fmt.Println("retrieve url: " + rawurl)
 
-	resp, err := http.Get(url)
+	resp, err := http.Get(rawurl)
 	if err != nil {
 		fmt.Println("error retrieving page: ", err)
 		return
@@ -50,9 +49,14 @@ func enqueue(url string, q chan string) {
 
 	defer resp.Body.Close()
 
-	links := getAllLinks(resp.Body)
+	links := getAllLinks(resp.Body) // can have relative links
+
+	baseuri, _ := url.Parse(rawurl)
 
 	for _, link := range links {
+		u, _ := url.Parse(link)
+		absuri := baseuri.ResolveReference(u)
+		link = absuri.String()
 		q <- link
 	}
 }
