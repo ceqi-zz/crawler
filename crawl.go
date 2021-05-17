@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"net/url"
 )
 
 func main() {
@@ -38,10 +37,10 @@ func filterq(q, filteredq chan string) {
 	}
 }
 
-func enqueue(rawurl string, q chan string) {
-	fmt.Println("retrieve url: " + rawurl)
+func enqueue(url string, q chan string) {
+	fmt.Println("retrieve url: " + url)
 
-	resp, err := http.Get(rawurl)
+	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("error retrieving page: ", err)
 		return
@@ -49,14 +48,9 @@ func enqueue(rawurl string, q chan string) {
 
 	defer resp.Body.Close()
 
-	links := getAllLinks(resp.Body) // can have relative links
-
-	baseuri, _ := url.Parse(rawurl)
+	links := getAllLinks(resp.Body, url)
 
 	for _, link := range links {
-		u, _ := url.Parse(link)
-		absuri := baseuri.ResolveReference(u)
-		link = absuri.String()
 		q <- link
 	}
 }

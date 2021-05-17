@@ -2,14 +2,17 @@ package main
 
 import (
 	"io"
+	"net/url"
 	"strings"
 
 	"golang.org/x/net/html"
 )
 
 // get all links from current page
-func getAllLinks(respbody io.Reader) []string {
+func getAllLinks(respbody io.Reader, rawurl string) []string {
 	var links []string
+	baseuri, _ := url.Parse(rawurl)
+
 	z := html.NewTokenizer(respbody)
 	for {
 		tt := z.Next()
@@ -27,6 +30,7 @@ func getAllLinks(respbody io.Reader) []string {
 					}
 
 					if isUnique(links, link) {
+						link = resolveLink(link, baseuri)
 						links = append(links, link)
 					}
 
@@ -34,6 +38,13 @@ func getAllLinks(respbody io.Reader) []string {
 			}
 		}
 	}
+}
+
+// relative links eg. "/subpage/sectionx" need to be resolved
+func resolveLink(link string, baseuri *url.URL) string {
+	u, _ := url.Parse(link)
+	absuri := baseuri.ResolveReference(u)
+	return absuri.String()
 }
 
 func isUnique(links []string, link string) bool {
