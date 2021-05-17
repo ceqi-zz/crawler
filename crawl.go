@@ -8,8 +8,6 @@ import (
 
 //TODO: resolve relative links
 
-var visited = make(map[string]bool)
-
 func main() {
 	flag.Parse()
 	args := flag.Args()
@@ -19,19 +17,31 @@ func main() {
 	}
 
 	q := make(chan string)
+	filteredq := make(chan string)
 
-	enqueue(q, args[0])
+	go enqueue(args[0], q)
 
-	for url := range q {
-		retrieve(url, q)
+	go filterq(q, filteredq)
+
+	for link := range filteredq {
+		go enqueue(link, q)
 	}
 
 }
 
-func retrieve(url string, q chan string) {
+func filterq(q, filteredq chan string) {
+	var visited = make(map[string]bool)
+	for link := range q {
+		if !visited[link] {
+			visited[link] = true
+			filteredq <- link
+		}
+	}
+}
+
+func enqueue(url string, q chan string) {
 	fmt.Println("retrieve url: " + url)
 
-	visited[url] = true
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("error retrieving page: ", err)
@@ -43,15 +53,6 @@ func retrieve(url string, q chan string) {
 	links := getAllLinks(resp.Body)
 
 	for _, link := range links {
-		if !visited[link] {
-			enqueue(q, link)
-		}
-
+		q <- link
 	}
-}
-
-func enqueue(c chan string, url string) {
-	go func() {
-		c <- url
-	}()
 }
