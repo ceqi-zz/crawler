@@ -29,8 +29,13 @@ func getAllLinks(respbody io.Reader, rawurl string) []string {
 						break
 					}
 
+					link = resolveLink(link, baseuri)
+
+					if link == "" {
+						break
+					}
+
 					if isUnique(links, link) {
-						link = resolveLink(link, baseuri)
 						links = append(links, link)
 					}
 
@@ -43,8 +48,12 @@ func getAllLinks(respbody io.Reader, rawurl string) []string {
 // relative links eg. "/subpage/sectionx" need to be resolved
 func resolveLink(link string, baseuri *url.URL) string {
 	u, _ := url.Parse(link)
-	absuri := baseuri.ResolveReference(u)
-	return absuri.String()
+	if u != nil {
+		absuri := baseuri.ResolveReference(u)
+		return absuri.String()
+	}
+
+	return ""
 }
 
 func isUnique(links []string, link string) bool {
