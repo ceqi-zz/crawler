@@ -27,11 +27,23 @@ func TestResolveLink(t *testing.T) {
 }
 
 func TestGetAllLinks(t *testing.T) {
-	respbody := strings.NewReader(`<a href="/subpage">subpage</a> <a href="https://www.example2.com">example2</a>`)
-	rawurl := "https://www.example.com/abc"
-	got := getAllLinks(respbody, rawurl)
-	expected := []string{"https://www.example.com/subpage", "https://www.example2.com"}
-	if !reflect.DeepEqual(got, expected) {
-		t.Errorf("getAllLinks(%v, %v) = %v ; want %v", respbody, rawurl, got, expected)
-	}
+	t.Run("get all links", func(t *testing.T) {
+		respbody := strings.NewReader(`<a href="/subpage">subpage</a> <a href="https://www.example2.com">example2</a>`)
+		rawurl := "https://www.example.com/abc"
+		got := getAllLinks(respbody, rawurl)
+		expected := []string{"https://www.example.com/subpage", "https://www.example2.com"}
+		if !reflect.DeepEqual(got, expected) {
+			t.Errorf("getAllLinks(%v, %v) = %v ; want %v", respbody, rawurl, got, expected)
+		}
+	})
+	t.Run("remove duplicate links", func(t *testing.T) {
+		respbody := strings.NewReader(`<a href="/subpage">subpage</a> <a href="/subpage">subpage</a>`)
+		rawurl := "https://www.example.com/abc"
+		got := getAllLinks(respbody, rawurl)
+		expected := []string{"https://www.example.com/subpage"}
+		if !reflect.DeepEqual(got, expected) {
+			t.Errorf("getAllLinks(%v, %v) = %v ; want %v", respbody, rawurl, got, expected)
+		}
+	})
+
 }
