@@ -37,13 +37,13 @@ func filterq(q, filteredq chan string) {
 	}
 }
 
-func enqueue(url string, q chan string) {
+func enqueue(url string, q chan string) error {
 	fmt.Println("retrieve url: " + url)
 
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("error retrieving page: ", err)
-		return
+		return err
 	}
 
 	defer resp.Body.Close()
@@ -53,4 +53,6 @@ func enqueue(url string, q chan string) {
 	for _, link := range links {
 		q <- link
 	}
+
+	return nil
 }
