@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -20,6 +21,17 @@ func getAllLinks(respbody io.Reader, rawurl string) []string {
 			return links
 		}
 		token := z.Token()
+
+		if token.Type == html.TextToken {
+			re := regexp.MustCompile(`\b\w+\.[\w.]+\b`)
+			link := re.Find([]byte(token.Data))
+			if link == nil {
+				continue
+			}
+			if isUnique(links, string(link)) {
+				links = append(links, "https://"+string(link))
+			}
+		}
 
 		if token.Type == html.StartTagToken && token.DataAtom.String() == "a" {
 			for _, attr := range token.Attr {

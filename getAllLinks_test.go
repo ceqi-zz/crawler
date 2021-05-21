@@ -40,8 +40,17 @@ func TestGetAllLinks(t *testing.T) {
 		respbody := strings.NewReader(`<a href="/subpage">subpage</a> <a href="/subpage">subpage</a>`)
 		rawurl := "https://www.example.com/abc"
 		got := getAllLinks(respbody, rawurl)
-		expected := []string{"https://www.example.com/subpage"}
-		if !reflect.DeepEqual(got, expected) {
+		expected := "https://www.example.com/subpage"
+		if got == nil || got[0] != expected {
+			t.Errorf("getAllLinks(%v, %v) = %v ; want %v", respbody, rawurl, got, expected)
+		}
+	})
+	t.Run("parse links in the form of text", func(t *testing.T) {
+		respbody := strings.NewReader(`<html> <body> <p> linkintext.io </p> </body> </html>`)
+		rawurl := "https://www.example.com/abc"
+		got := getAllLinks(respbody, rawurl)
+		expected := "https://linkintext.io"
+		if got == nil || got[0] != expected {
 			t.Errorf("getAllLinks(%v, %v) = %v ; want %v", respbody, rawurl, got, expected)
 		}
 	})
