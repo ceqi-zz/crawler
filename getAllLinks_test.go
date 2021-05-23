@@ -56,7 +56,7 @@ func TestGetAllLinks(t *testing.T) {
 	})
 	t.Run("links are not followed when meta tag contains nofollow", func(t *testing.T) {
 		respbody := strings.NewReader(`<html> 
-		<head> <meta name="robots" content="NOINDEX, nofollow" /> </head> 
+		<head> <meta name="robots" content="NOINDEX,   nofollow" /> </head> 
 		<body> <a href="https://www.anotherexample.com">anotherexample</a> </body> </html>`)
 		rawurl := "https://www.example.com"
 		got := getAllLinks(respbody, rawurl)

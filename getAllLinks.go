@@ -22,6 +22,14 @@ func getAllLinks(respbody io.Reader, rawurl string) []string {
 		}
 		token := z.Token()
 
+		if token.Type == html.SelfClosingTagToken && token.DataAtom.String() == "meta" {
+			for _, attr := range token.Attr {
+				if attr.Key == "content" && strings.ToLower(strings.ReplaceAll(attr.Val, " ", "")) == "noindex,nofollow" {
+					return links
+				}
+			}
+		}
+
 		if token.Type == html.TextToken {
 			re := regexp.MustCompile(`\b\w+\.[\w.]+\b`)
 			link := re.Find([]byte(token.Data))
