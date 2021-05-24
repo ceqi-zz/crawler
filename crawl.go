@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -38,11 +38,11 @@ func filterq(q, filteredq chan string) {
 }
 
 func enqueue(url string, q chan string) error {
-	fmt.Println("retrieve url: " + url)
+	log.Println("retrieve url: " + url)
 
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println("error retrieving page: ", err)
+		log.Println("error retrieving page: ", err)
 		return err
 	}
 
