@@ -3,9 +3,9 @@ package db
 import "testing"
 
 func TestConnectdb(t *testing.T) {
-	got := connectmdb()
-	if got != 1 {
-		t.Errorf("connectiondb() = %v ; want 1", got)
+	got, ctx, err := CreatedbClient()
+	if err != nil {
+		t.Errorf("connectiondb() = %v, %v, %v ; want no error", got, ctx, err)
 	}
 
 }
